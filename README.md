@@ -2,7 +2,7 @@
 Trabajo Práctico de Arquitectura Web
 
 
-##Adicional:
+## Adicional:
  * Salas de chat.
  * Pasar historial de chat al entrar.
 
