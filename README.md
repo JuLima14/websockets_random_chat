@@ -1,13 +1,14 @@
-# tp_websockets
-Trabajo Práctico de Arquitectura Web
+# Web Sockets Coursework
+
+Course: Web Architecture
 
 
-## Adicional:
- * Salas de chat.
- * Pasar historial de chat al entrar.
+## Optional Functionality
+ * Chat rooms.
+ * When a new user enters to the chat room, retrieve the chat history.
 
  
-## Install
+## Installation Instructions
 
 ```
 pip install virtualenv
