@@ -19,30 +19,32 @@
 
             <br>
 
-            <div id="nameSection">
+            <form id="nameForm" name="nameForm" novalidate>
                 <div class="form-group">
                     <input type="email" class="form-control" id="name" aria-describedby="nameHelp" placeholder="Your name?">
                     <small id="nameHelp" class="form-text text-muted">Your name lets people to know you are here!</small>
                 </div>
 
-                <button type="submit" class="btn btn-primary" onclick="register();registerAction();" style="margin-left: 50px;">Enter</button>
-            </div>
+                <button type="submit" class="btn btn-primary" style="margin-left: 50px;">Enter</button>
+            </form>
 
-            <div id="usersSection" class="hidden-xs-up">
+            <form id="usersForm" class="hidden-xs-up" name="usersForm" novalidate>
                 <div class="form-group">
                     <label for="users">Select that person</label>
-                    <select multiple class="form-control" id="users" onchange="selectUserAction();"></select>
+                    <select multiple class="form-control" id="users"></select>
                 </div>
-            </div>
 
-            <div id="messageSection" class="hidden-xs-up">
+                <button type="submit" class="btn btn-primary" style="margin-left: 50px;">Go!</button>
+            </form>
+
+            <form id="messageForm" class="hidden-xs-up" name="messageForm" novalidate>
                 <div class="form-group">
                     <label for="message">Message</label>
                     <textarea class="form-control" id="message" rows="3" cols="42"></textarea>
                 </div>
 
-                <button type="submit" class="btn btn-primary" onclick="sendMessage()" style="margin-left: 50px;">Send</button>
-            </div>
+                <button type="submit" class="btn btn-primary" style="margin-left: 50px;">Send</button>
+            </form>
 
             <br>
             <br>

@@ -3,7 +3,6 @@ var ENDPOINT = 'ws://127.0.0.1:9000/';
 var socket;
 
 var registry = {type: 'registry', value: ''};
-var getUsersMessage = {type: 'users', value: ''};
 var message = {type: 'message', value: '', to: '', from: ''};
 
 var users = [];
@@ -15,7 +14,6 @@ function register() {
     socket.onopen = function(event) {
         registry.value = $('#name').val();
         socket.send(JSON.stringify(registry));
-        socket.send(JSON.stringify(getUsersMessage));
     };
 
     socket.onmessage = function(event) {
@@ -67,14 +65,30 @@ function showUsers() {
     select.append(items);
 }
 
+$(function(){
+    $('form[name="nameForm"]').submit(function(event) {
+        event.preventDefault();
+        registerAction();
+        register();
+    });
+    $('form[name="usersForm"]').submit(function(event) {
+        event.preventDefault();
+        selectUserAction();
+    });
+    $('form[name="messageForm"]').submit(function(event) {
+        event.preventDefault();
+        sendMessage();
+    });
+});
+
 function registerAction() {
-    $("#nameSection").addClass('hidden-xs-up');
-    $("#usersSection").removeClass('hidden-xs-up');
+    $("#nameForm").addClass('hidden-xs-up');
+    $("#usersForm").removeClass('hidden-xs-up');
 }
 
 function selectUserAction() {
-    $("#usersSection").addClass('hidden-xs-up');
-    $("#messageSection").removeClass('hidden-xs-up');
+    $("#usersForm").addClass('hidden-xs-up');
+    $("#messageForm").removeClass('hidden-xs-up');
 }
 
 function addMessageToChat(msg, from) {
