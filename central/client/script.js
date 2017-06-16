@@ -2,17 +2,21 @@ var ENDPOINT = 'ws://127.0.0.1:9000/';
 
 var socket;
 
-var registry = {type: 'registry', value: ''};
-var message = {type: 'message', value: '', to: '', from: ''};
+var registry = {type: 'register', user: ''};
+var createChat = {type: 'create_chat', name: ''};
+var joinToChat = {type: 'join_to_chat', name: ''};
+var sendMessageToChat = {type: 'send_message_to_chat', name: '', message: ''};
 
 var users = [];
+var chats = [];
+var chat;
 
 
 function register() {
     socket = new WebSocket(ENDPOINT);
 
     socket.onopen = function(event) {
-        registry.value = $('#name').val();
+        registry.user = $('#name').val();
         socket.send(JSON.stringify(registry));
     };
 
@@ -22,7 +26,12 @@ function register() {
         if (reply.type === 'users') {
             users = reply.value;
             console.log('users are: ', users);
-            showUsers();
+        }
+
+        if (reply.type === 'chats') {
+            chats = reply.value;
+            console.log('chats are: ', chats);
+            showChats();
         }
 
         if (reply.type === 'message') {
@@ -35,30 +44,40 @@ function register() {
     });
 }
 
-function sendMessage() {
-    message.value = $('#message').val();
-    message.to = $('#users').val()[0];
-    socket.send(JSON.stringify(message));
-    addMessageToChat(message.value, 'You');
+function performChatCreation() {
+    createChat.name = $('#chatName').val();
+    chat = createChat.name;
+    socket.send(JSON.stringify(createChat));
 }
 
+function performChatJoining(name) {
+    joinToChat.name = name;
+    chat = name;
+    socket.send(JSON.stringify(joinToChat));
+}
+
+function sendMessage() {
+    var messageInput = $('#message');
+    sendMessageToChat.message = messageInput.val();
+    sendMessageToChat.name = chat;
+    socket.send(JSON.stringify(sendMessageToChat));
+
+    messageInput.val('');
+}
 
 /*
     Helper functions:
 */
-function showUsers() {
-    var select = $('#users');
-    var userName = $('#name').val();
+function showChats() {
+    var select = $('#chats');
     var items;
 
     // clear select
     select.find('option').remove().end();
 
     // build options
-    $.each(users, function(key, value){
-        if (value !== userName) {
-            items += '<option>' + value + '</option>';
-        }
+    $.each(chats, function(key, value){
+        items += '<option>' + value + '</option>';
     });
 
     // append options
@@ -71,9 +90,17 @@ $(function(){
         registerAction();
         register();
     });
-    $('form[name="usersForm"]').submit(function(event) {
+    $('form[name="chatsForm"]').submit(function(event) {
         event.preventDefault();
-        selectUserAction();
+        selectChatAction();
+        var chatName = $('#chats').val();
+        performChatJoining(chatName);
+    });
+    $('form[name="chatNameForm"]').submit(function(event) {
+        event.preventDefault();
+        selectChatAction();
+        var chatName = $('#chatName').val();
+        performChatCreation(chatName)
     });
     $('form[name="messageForm"]').submit(function(event) {
         event.preventDefault();
@@ -83,11 +110,11 @@ $(function(){
 
 function registerAction() {
     $("#nameForm").addClass('hidden-xs-up');
-    $("#usersForm").removeClass('hidden-xs-up');
+    $("#chatSection").removeClass('hidden-xs-up');
 }
 
-function selectUserAction() {
-    $("#usersForm").addClass('hidden-xs-up');
+function selectChatAction() {
+    $("#chatSection").addClass('hidden-xs-up');
     $("#messageForm").removeClass('hidden-xs-up');
 }
 

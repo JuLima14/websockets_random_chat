@@ -28,14 +28,28 @@
                 <button type="submit" class="btn btn-primary" style="margin-left: 50px;">Enter</button>
             </form>
 
-            <form id="usersForm" class="hidden-xs-up" name="usersForm" novalidate>
-                <div class="form-group">
-                    <label for="users">Select that person</label>
-                    <select multiple class="form-control" id="users"></select>
-                </div>
+            <div class="row hidden-xs-up" id="chatSection">
+                <div class="col-md-6">
+                    <form id="chatsForm" name="chatsForm" novalidate>
+                        <div class="form-group">
+                            <label for="chats">Select a chat</label>
+                            <select class="form-control" id="chats"></select>
+                        </div>
 
-                <button type="submit" class="btn btn-primary" style="margin-left: 50px;">Go!</button>
-            </form>
+                        <button type="submit" class="btn btn-primary" style="margin-left: 50px;">Go!</button>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <form id="chatNameForm" name="chatNameForm" novalidate>
+                        <div class="form-group">
+                            <label for="chatName">Or create one</label>
+                            <input type="text" class="form-control" id="chatName"/>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="margin-left: 50px;">Go!</button>
+                    </form>
+                </div>
+            </div>
 
             <form id="messageForm" class="hidden-xs-up" name="messageForm" novalidate>
                 <div class="form-group">
