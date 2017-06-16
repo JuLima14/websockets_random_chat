@@ -35,7 +35,13 @@ function register() {
         }
 
         if (reply.type === 'message') {
-            addMessageToChat(reply.value, reply.from);
+            addMessageToChat(reply.value, reply.sender);
+        }
+
+        if (reply.type === 'history') {
+            $.each(reply.value, function(key, message){
+                addMessageToChat(message.message, message.sender);
+            });
         }
     };
 
@@ -118,6 +124,6 @@ function selectChatAction() {
     $("#messageForm").removeClass('hidden-xs-up');
 }
 
-function addMessageToChat(msg, from) {
-    $('#chat').append(from + ': ' + msg + '<br>');
+function addMessageToChat(msg, sender) {
+    $('#chat').append(sender + ': ' + msg + '<br>');
 }

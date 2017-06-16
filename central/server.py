@@ -5,9 +5,35 @@ import json
 
 
 PORT = 9000
+HISTORY_LENGTH = 10
 
 clients = {}
 chats = {}
+
+
+class Service(object):
+    @staticmethod
+    def send_users_list():
+        userslist = [name for name in clients.keys()]
+        for name in clients:
+            clients[name].write_message(
+                json.dumps(dict(type='users', value=userslist))
+            )
+
+    @staticmethod
+    def send_chats_list():
+        chatslist = [name for name in chats.keys()]
+        for name in clients:
+            clients[name].write_message(
+                json.dumps(dict(type='chats', value=chatslist))
+            )
+
+    @staticmethod
+    def send_chat_history(client, chat):
+        history = [dict(sender=m['sender'].name, message=m['message']) for m in chat.messages[-HISTORY_LENGTH:]]
+        client.write_message(
+            json.dumps(dict(type='history', value=history))
+        )
 
 
 class Chat(object):
@@ -16,11 +42,13 @@ class Chat(object):
         self.name = name
         self.owner = owner
         self.members = [owner]
+        self.messages = []
 
     def send(self, message, sender):
+        self.messages.append(dict(message=message, sender=sender))
         for member in self.members:
             member.write_message(
-                json.dumps({'type': 'message', 'value': message, 'from': sender.name})
+                json.dumps(dict(type='message', value=message, sender=sender.name))
             )
 
     def add_member(self, member):
@@ -55,38 +83,29 @@ class Member(websocket.WebSocketHandler):
             del clients[self.name]
         for chat in self.chats:
             chat.remove_member(self)
-        self._send_users_list()
-        self._send_chats_list()
+        Service.send_users_list()
+        Service.send_chats_list()
 
     def register(self, m):
         if m['user'] not in clients:
             self.name = m['user']
             clients[self.name] = self
             print('{} is now online!'.format(self.name))
-            self._send_users_list()
-            self._send_chats_list()
+            Service.send_users_list()
+            Service.send_chats_list()
 
     def create_chat(self, m):
         chats[m['name']] = Chat(m['name'], self)
         self.chats.append(chats[m['name']])
-        self._send_chats_list()
+        Service.send_chats_list()
 
     def join_to_chat(self, m):
         chats[m['name']].add_member(self)
         self.chats.append(chats[m['name']])
+        Service.send_chat_history(self, chats[m['name']])
 
     def send_message_to_chat(self, m):
         chats[m['name']].send(m['message'], self)
-
-    def _send_users_list(self):
-        userslist = [name for name in clients.keys()]
-        for name in clients:
-            clients[name].write_message(json.dumps({'type': 'users', 'value': userslist}))
-
-    def _send_chats_list(self):
-        chatslist = [name for name in chats.keys()]
-        for name in clients:
-            clients[name].write_message(json.dumps({'type': 'chats', 'value': chatslist}))
 
 
 application = tornado.web.Application([(r"/", Member,)])
