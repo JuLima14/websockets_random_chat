@@ -22,6 +22,7 @@ class Connection(websocket.WebSocketHandler):
         return True
 
     def on_message(self, message):
+        print 'message: ', message
         m = json.loads(message)
         getattr(self, m['type'])(m)
 
@@ -48,14 +49,12 @@ class Connection(websocket.WebSocketHandler):
 
         clients[self.user.phone] = self
 
-        self._send_chats_list()
-
-        self._send_chats_history()
+        self._send_state()
 
         print('{} is now online!'.format(self.user.phone))
 
     def create_chat(self, m):
-        if not self.user: return
+        if not self.user: self.close()
         new_chat = get_or_create(
             session,
             Chat,
@@ -67,39 +66,55 @@ class Connection(websocket.WebSocketHandler):
         print '{} created a new chat: {}'.format(self.user.phone, new_chat.name)
 
     def add_member(self, m):
-        if not self.user: return
+        if not self.user: self.close()
         new_member = session.query(User).filter_by(phone=m['phone']).first()
         chat = session.query(Chat).filter_by(name=m['chat']).first()
         chat.members.append(new_member)
+
+        chat.notify_new_member(new_member, clients)
+
         session.commit()
 
     def send_message_to_chat(self, m):
-        if not self.user: return
+        if not self.user: self.close()
         chat = session.query(Chat).filter_by(name=m['chat']).first()
         chat.send(m['message'], self, clients)
 
-    def _send_chats_list(self):
+    def delete_chat(self, m):
+        chat = session.query(Chat).filter_by(name=m['chat']).first()
+
+        # Only the owner of a chat can delete it
+        if chat.owner_id != self.user.id:
+            self.close()
+
+        chat.notify_deleted(clients)
+
+        chat.deleted = True
+        session.commit()
+
+    def remove_member(self, m):
+        chat = session.query(Chat).filter_by(name=m['chat']).first()
+        member = session.query(User).filter_by(phone=m['phone']).first()
+
+        # Only the owner of a chat can remove a member
+        if chat.owner_id != self.user.id:
+            self.close()
+
+        chat.notify_member_removed(member, clients)
+
+        chat.members.remove(member)
+        session.commit()
+
+    def _send_state(self):
         self.write_message(
             json.dumps(
                 {
-                    'type': 'chats_list',
+                    'type': 'state',
                     'chats': [
-                        {
-                            'name': member_chat.name,
-                            'members': [
-                                {
-                                    'name': member.name,
-                                    'phone': member.phone
-                                }
-                                for member in member_chat.members
-                            ]
-                        }
-                        for member_chat in self.user.memberships
+                        chat.get_state_for(self.user)
+                        for chat in self.user.memberships
+                        if not chat.deleted
                     ]
                 }
             )
         )
-
-    def _send_chats_history(self):
-        for member_chat in self.user.memberships:
-            member_chat.send_history_to(self)

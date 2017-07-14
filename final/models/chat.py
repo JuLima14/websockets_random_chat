@@ -1,13 +1,16 @@
 import json
 
-from sqlalchemy import Column, ForeignKey, Integer, Text, and_, cast, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, Text, and_, Boolean
 from sqlalchemy.orm import relationship
 
-from . import Base, session
+from . import session
+
+from model import Model
+
 from message import Message
 
 
-class Chat(Base):
+class Chat(Model):
     __tablename__ = 'chat'
     id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False)
@@ -15,34 +18,32 @@ class Chat(Base):
     owner = relationship('User')
     members = relationship('User', secondary='membership', backref='Chat')
     messages = relationship('Message', backref='sender')
+    deleted = Column(Boolean, nullable=False, default=False)
 
-    def send_history_to(self, connection):
-        user = connection.user
+    def serialize(self):
+        return {
+            'name': self.name,
+            'owner': self.owner.serialize(),
+            'members': [member.serialize() for member in self.members]
+        }
+
+    def get_state_for(self, user):
         date = user.disconnection_date
-        print 'user date: ', date
+
         messages = session.query(Message).filter(
             and_(
                 Message.chat == self,
                 Message.date_created >= date
             )
         )
-        print messages
-        connection.write_message(
-            json.dumps(
-                {
-                    'type': 'messages_list',
-                    'chat': self.name,
-                    'messages': [
-                        {
-                            'from': message.user.name,
-                            'date': message.date_created.strftime("%Y-%m-%d %H:%M:%S"),
-                            'message': message.message
-                        }
-                        for message in messages
-                    ]
-                }
-            )
-        )
+
+        return {
+            "chat": self.serialize(),
+            "messages": [
+                message.serialize()
+                for message in messages
+            ]
+        }
 
     def send(self, message, connection, clients):
         sender = connection.user
@@ -61,10 +62,48 @@ class Chat(Base):
                     json.dumps(
                         {
                             'type': 'message',
-                            'chat': self.name,
-                            'from': sender.name,
+                            'chat': self.serialize(),
+                            'from': sender.serialize(),
                             'date': new_message.date_created.strftime("%Y-%m-%d %H:%M:%S"),
                             'message': message
+                        }
+                    )
+                )
+
+    def notify_new_member(self, user, clients):
+        for member in self.members:
+            if member.phone in clients:
+                clients[member.phone].write_message(
+                    json.dumps(
+                        {
+                            'type': 'new_member',
+                            'chat': self.serialize(),
+                            'user': user.serialize()
+                        }
+                    )
+                )
+
+    def notify_deleted(self, clients):
+        for member in self.members:
+            if member.phone in clients:
+                clients[member.phone].write_message(
+                    json.dumps(
+                        {
+                            'type': 'chat_deleted',
+                            'chat': self.serialize()
+                        }
+                    )
+                )
+
+    def notify_member_removed(self, user, clients):
+        for member in self.members:
+            if member.phone in clients:
+                clients[member.phone].write_message(
+                    json.dumps(
+                        {
+                            'type': 'member_removed',
+                            'chat': self.serialize(),
+                            'user': user.serialize()
                         }
                     )
                 )

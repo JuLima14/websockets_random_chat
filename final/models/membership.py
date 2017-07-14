@@ -1,10 +1,10 @@
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 
-from . import Base
+from model import Model
 
 
-class Membership(Base):
+class Membership(Model):
     __tablename__ = 'membership'
     chat_id = Column(Integer, ForeignKey('chat.id'), primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'), primary_key=True)

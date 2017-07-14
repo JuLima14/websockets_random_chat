@@ -3,10 +3,10 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, ForeignKey, DateTime, Text
 from sqlalchemy.orm import relationship
 
-from . import Base
+from model import Model
 
 
-class Message(Base):
+class Message(Model):
     __tablename__ = 'message'
     id = Column(Integer, primary_key=True)
     chat_id = Column(Integer, ForeignKey('chat.id'))
@@ -15,3 +15,11 @@ class Message(Base):
     chat = relationship('Chat')
     user = relationship('User')
     date_created = Column(DateTime, default=datetime.now)
+
+    def serialize(self):
+        date = self.date_created.strftime("%Y-%m-%d %H:%M:%S") if self.date_created else None
+        return {
+            'from': self.user.serialize(),
+            'date': date,
+            'message': self.message
+        }
