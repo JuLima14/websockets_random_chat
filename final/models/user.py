@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import Column, Integer, Text, DateTime
 from sqlalchemy.orm import relationship
 
@@ -9,7 +11,7 @@ class User(Model):
     id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False)
     phone = Column(Text, nullable=False, unique=True)
-    disconnection_date = Column(DateTime)
+    disconnection_date = Column(DateTime, default=datetime.now)
     memberships = relationship('Chat', secondary='membership', backref='User')
 
     def serialize(self):

@@ -22,10 +22,11 @@ class Connection(websocket.WebSocketHandler):
         return True
 
     def on_message(self, message):
-        print 'message: ', message
+        print 'received: ', message
         try:
             m = json.loads(message)
-            getattr(self, m['type'])(m)
+            operation = m.pop('type')
+            getattr(self, operation)(**m)
         except Exception as e:
             print e
 
@@ -35,9 +36,8 @@ class Connection(websocket.WebSocketHandler):
         del clients[self.user.phone]
         print('{} closed his connection'.format(self.user.phone))
 
-    def register(self, m):
-        user_data = m['user']
-        name, phone = user_data['name'], user_data['phone']
+    def register(self, user):
+        name, phone = user['name'], user['phone']
 
         # Close previous connection if already logged in
         if phone in clients:
@@ -53,38 +53,40 @@ class Connection(websocket.WebSocketHandler):
         clients[self.user.phone] = self
 
         self._send_state()
-
         print('{} is now online!'.format(self.user.phone))
 
-    def create_chat(self, m):
+    def create_chat(self, name):
         if not self.user: self.close()
         new_chat = get_or_create(
             session,
             Chat,
             dict(members=[self.user]),
-            name=m['name'],
+            name=name,
             owner=self.user
         )
-
         print '{} created a new chat: {}'.format(self.user.phone, new_chat.name)
 
-    def add_member(self, m):
+    def add_member(self, chat, phone):
         if not self.user: self.close()
-        new_member = session.query(User).filter_by(phone=m['phone']).first()
-        chat = session.query(Chat).filter_by(name=m['chat']).first()
+        new_member = session.query(User).filter_by(phone=phone).first()
+
+        if not new_member:
+            self._send_error('User not found')
+            return
+
+        chat = session.query(Chat).filter_by(name=chat).first()
         chat.members.append(new_member)
 
         chat.notify_new_member(new_member, clients)
-
         session.commit()
 
-    def send_message_to_chat(self, m):
+    def send_message(self, chat, message):
         if not self.user: self.close()
-        chat = session.query(Chat).filter_by(name=m['chat']).first()
-        chat.send(m['message'], self, clients)
+        chat = session.query(Chat).filter_by(name=chat).first()
+        chat.send(message, self, clients)
 
-    def delete_chat(self, m):
-        chat = session.query(Chat).filter_by(name=m['chat']).first()
+    def delete_chat(self, chat):
+        chat = session.query(Chat).filter_by(name=chat).first()
 
         # Only the owner of a chat can delete it
         if chat.owner_id != self.user.id:
@@ -98,9 +100,9 @@ class Connection(websocket.WebSocketHandler):
         chat.deleted = True
         session.commit()
 
-    def remove_member(self, m):
-        chat = session.query(Chat).filter_by(name=m['chat']).first()
-        member = session.query(User).filter_by(phone=m['phone']).first()
+    def remove_member(self, chat, phone):
+        chat = session.query(Chat).filter_by(name=chat).first()
+        member = session.query(User).filter_by(phone=phone).first()
 
         if chat.owner_id != self.user.id and self.user.id != member.id:
             self._send_error(
