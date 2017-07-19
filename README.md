@@ -6,7 +6,7 @@ WS is a protocol that allows full-duplex communication between client and server
 
 The application implements its own fully websocket-based protocol, establishing two kinds of messages: server to client, and client to server messages.
 
-This project has been developed as a coursework in the Web Architecture course.
+This project has been developed as a coursework for the Web Architecture course.
 
 
 ## Operations
