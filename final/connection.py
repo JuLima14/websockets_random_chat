@@ -23,8 +23,11 @@ class Connection(websocket.WebSocketHandler):
 
     def on_message(self, message):
         print 'message: ', message
-        m = json.loads(message)
-        getattr(self, m['type'])(m)
+        try:
+            m = json.loads(message)
+            getattr(self, m['type'])(m)
+        except Exception as e:
+            print e
 
     def on_close(self):
         self.user.disconnection_date = datetime.now()
@@ -85,7 +88,10 @@ class Connection(websocket.WebSocketHandler):
 
         # Only the owner of a chat can delete it
         if chat.owner_id != self.user.id:
-            self.close()
+            self._send_error(
+                'Only the chat owner is able to delete it'
+            )
+            return
 
         chat.notify_deleted(clients)
 
@@ -96,9 +102,11 @@ class Connection(websocket.WebSocketHandler):
         chat = session.query(Chat).filter_by(name=m['chat']).first()
         member = session.query(User).filter_by(phone=m['phone']).first()
 
-        # Only the owner of a chat can remove a member
-        if chat.owner_id != self.user.id:
-            self.close()
+        if chat.owner_id != self.user.id and self.user.id != member.id:
+            self._send_error(
+                'Only the chat owner is able to remove a member, or the member to himself'
+            )
+            return
 
         chat.notify_member_removed(member, clients)
 
@@ -115,6 +123,16 @@ class Connection(websocket.WebSocketHandler):
                         for chat in self.user.memberships
                         if not chat.deleted
                     ]
+                }
+            )
+        )
+
+    def _send_error(self, detail):
+        self.write_message(
+            json.dumps(
+                {
+                    'type': 'error',
+                    'detail': detail
                 }
             )
         )
