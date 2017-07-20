@@ -28,6 +28,7 @@ class Connection(websocket.WebSocketHandler):
             operation = m.pop('type')
             getattr(self, operation)(**m)
         except Exception as e:
+            self._send_error(str(e))
             print e
 
     def on_close(self):
@@ -113,6 +114,10 @@ class Connection(websocket.WebSocketHandler):
         chat.notify_member_removed(member, clients)
 
         chat.members.remove(member)
+
+        if not len(chat.members):
+            chat.deleted = True
+
         session.commit()
 
     def _send_state(self):
