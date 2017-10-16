@@ -17,13 +17,13 @@
 #Base.metadata.create_all(engine, checkfirst=True)
 
 
-#def get_or_create(session, model, defaults, **kwargs):
-#    instance = session.query(model).filter_by(**kwargs).first()
-#    if not instance:
-#        instance = model(**kwargs)
-#        for default in defaults:
-#            setattr(instance, default, defaults[default])
-#        session.add(instance)
-#        session.commit()
-#        return instance
-#    return instance
+def get_or_create(session, model, defaults, **kwargs):
+    instance = session.query(model).filter_by(**kwargs).first()
+    if not instance:
+        instance = model(**kwargs)
+        for default in defaults:
+            setattr(instance, default, defaults[default])
+        session.add(instance)
+        session.commit()
+        return instance
+    return instance
