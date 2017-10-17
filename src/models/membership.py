@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 
-from model import Model
+from models.model import Model
 
 
 class Membership(Model):
