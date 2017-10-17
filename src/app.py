@@ -9,7 +9,7 @@ from connection import Connection
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", PORT))
     print('Welcome! listening on port {}'.format(port))
-    Application([(r"/", Connection,)]).listen(port)
-    ioloop.IOLoop.instance().start()
+    tornado.web.Application([(r"/", Connection,)]).listen(port)
+    tornado.ioloop.IOLoop.instance().start()
