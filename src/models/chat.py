@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 
 from . import session
 
-from model import Model
+from models.model import Model
 
 from message import Message
 
