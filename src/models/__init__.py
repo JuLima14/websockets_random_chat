@@ -1,8 +1,12 @@
 
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+
+from user import User
+from chat import Chat
+from membership import Membership
+from message import Message
 
 Base = declarative_base()
 
@@ -11,10 +15,7 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-from models import *
-#from chat import Chat
-#from membership import Membership
-#from message import Message
+
 
 Base.metadata.create_all(engine, checkfirst=True)
 
