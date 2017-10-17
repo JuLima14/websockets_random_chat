@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, ForeignKey, DateTime, Text
 from sqlalchemy.orm import relationship
 
-from model import Model
+from models.model import Model
 
 
 class Message(Model):
