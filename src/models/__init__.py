@@ -4,18 +4,15 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
-
-from models.user import User
-from models.chat import Chat
-from models.membership import Membership
-from models.message import Message
-
 engine = create_engine('sqlite:///database.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-
+from models.user import User
+from models.chat import Chat
+from models.membership import Membership
+from models.message import Message
 
 Base.metadata.create_all(engine, checkfirst=True)
 
