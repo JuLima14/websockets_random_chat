@@ -11,7 +11,7 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-#from user import User
+from user import User
 #from chat import Chat
 #from membership import Membership
 #from message import Message
