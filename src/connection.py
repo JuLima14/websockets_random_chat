@@ -22,14 +22,12 @@ class Connection(websocket.WebSocketHandler):
         return True
 
     def on_message(self, message):
-        print('received: {}'.format(message))
         try:
             m = json.loads(message)
             operation = m.pop('type')
             getattr(self, operation)(**m)
         except Exception as e:
             self._send_error(str(e))
-            print('{}'.format(e))
 
     def on_close(self):
         self.user.disconnection_date = datetime.now()
