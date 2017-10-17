@@ -3,8 +3,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from chat import Chat
 from user import User
+from chat import Chat
 from membership import Membership
 from message import Message
 
