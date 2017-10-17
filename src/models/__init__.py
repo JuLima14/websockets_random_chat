@@ -16,11 +16,6 @@ session = DBSession()
 #from membership import Membership
 #from message import Message
 
-import user 
-import chat
-import membership
-import message
-
 Base.metadata.create_all(engine, checkfirst=True)
 
 
