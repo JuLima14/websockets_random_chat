@@ -3,11 +3,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from model import Model
-from user import User
-from chat import Chat
-from membership import Membership
-from message import Message
+from models.user import User
+from models.chat import Chat
+from models.membership import Membership
+from models.message import Message
 
 Base = declarative_base()
 
