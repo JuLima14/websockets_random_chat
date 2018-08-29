@@ -32,27 +32,27 @@ class Connection(websocket.WebSocketHandler):
     def on_close(self):
         self.user.disconnection_date = datetime.now()
         session.commit()
-        del clients[self.user.phone]
-        print('{} closed his connection'.format(self.user.phone))
+        del clients[self.user.email]
+        print('{} closed his connection'.format(self.user.email))
 
     def register(self, user):
-        name, phone = user['name'], user['email']
+        name, email = user['name'], user['email']
 
         # Close previous connection if already logged in
-        if phone in clients:
-            clients[phone].close(409, 'You opened another session.')
+        if email in clients:
+            clients[email].close(409, 'You opened another session.')
 
         self.user = get_or_create(
             session,
             User,
             dict(name=name),
-            phone=phone
+            email=email
         )
 
-        clients[self.user.phone] = self
+        clients[self.user.email] = self
 
         self._send_state()
-        print('{} is now online!'.format(self.user.phone))
+        print('{} is now online!'.format(self.user.email))
 
     def create_chat(self, name):
         if not self.user: self.close()
