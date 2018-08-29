@@ -36,7 +36,7 @@ class Connection(websocket.WebSocketHandler):
         print('{} closed his connection'.format(self.user.phone))
 
     def register(self, user):
-        name, phone = user['name'], user['phone']
+        name, phone = user['name'], user['email']
 
         # Close previous connection if already logged in
         if phone in clients:
